@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -22,7 +21,7 @@ type Data struct {
 	Tariff    string `json:"tariff"`
 	Begindate string `json:"begindate"`
 	Enddate   string `json:"enddate"`
-	Continues string `json:"continues"`
+	Continues bool   `json:"continues"`
 	MoreInfo  string `json:"moreInfo"`
 	Status    string `json:"status"`
 }
@@ -33,7 +32,11 @@ func setupResponse(w *http.ResponseWriter, req *http.Request) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func insertData(w http.ResponseWriter, r *http.Request) {
+func selectContractData(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func insertContractData(w http.ResponseWriter, r *http.Request) {
 	setupResponse(&w, r)
 
 	var data Data
@@ -41,8 +44,6 @@ func insertData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-
-	fmt.Println(data.Number)
 
 	var (
 		mongoURL = "mongodb://localhost:27017"
@@ -60,13 +61,21 @@ func insertData(w http.ResponseWriter, r *http.Request) {
 	defer client.Disconnect(ctx)
 	quickstartDatabase := client.Database("new_databse")
 	podcastsCollection := quickstartDatabase.Collection("test")
-	podcastResult, err := podcastsCollection.InsertOne(ctx, bson.D{
+	_, err = podcastsCollection.InsertOne(ctx, bson.D{
 		{"number", data.Number},
+		{"driver", data.Driver},
+		{"auto", data.Auto},
+		{"tariff", data.Tariff},
+		{"begindate", data.Begindate},
+		{"enddate", data.Enddate},
+		{"continues", data.Continues},
+		{"moreInfo", data.MoreInfo},
+		{"status", data.Status},
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(podcastResult)
+
 }
 
 func ConnectMongo() {
@@ -88,6 +97,7 @@ func ConnectMongo() {
 }
 
 func main() {
-	http.HandleFunc("/", insertData)
+	http.HandleFunc("/insertContractData", insertContractData)
+	http.HandleFunc("/selectContractData", selectContractData)
 	http.ListenAndServe(":8081", nil)
 }
