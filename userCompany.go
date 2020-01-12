@@ -266,28 +266,4 @@ func (mc *MyClient) selectUserCompanyDataOne(w http.ResponseWriter, r *http.Requ
 	w.Write([]byte(bytes))
 }
 
-func (mc *MyClient) deleteUserCompanyDataOne(w http.ResponseWriter, r *http.Request) {
-	setupResponse(w, r)
-	var err error
-	err = json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	id, err := primitive.ObjectIDFromHex(strings.Trim(data.Id, "\""))
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(data.Id)
-	podcastsCollection := mc.db.Collection("account")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	podcastsCollection.DeleteOne(
-		ctx,
-		bson.M{"_id": id},
-	)
-}
+
