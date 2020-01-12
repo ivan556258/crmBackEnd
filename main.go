@@ -45,6 +45,9 @@ func main() {
 	http.HandleFunc("/insertDriverData", mc.insertDriverData)
 	http.HandleFunc("/insertAutomobileData", mc.insertAutomobileData)
 	http.HandleFunc("/insertTechnicalServiceData", mc.insertTechnicalServiceData)
-	http.HandleFunc("/insertOwnerData", mc.insertOwnerData)
+	http.HandleFunc("/updateAccountData", mc.updateAccountData)
+	http.HandleFunc("/insertAccountData", mc.insertAccountData)
+	http.HandleFunc("/selectAccountData", mc.selectAccountData)
+	http.HandleFunc("/deleteAccountData", mc.deleteAccountData)
 	panic(http.ListenAndServe(":8081", nil))
 }
