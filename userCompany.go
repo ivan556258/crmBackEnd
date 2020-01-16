@@ -265,5 +265,3 @@ func (mc *MyClient) selectUserCompanyDataOne(w http.ResponseWriter, r *http.Requ
 
 	w.Write([]byte(bytes))
 }
-
-

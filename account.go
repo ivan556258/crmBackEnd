@@ -19,11 +19,6 @@ type DataAccount struct {
 	Name string `json:"name"`
 }
 
-type DataAccountSel struct {
-	Id   string
-	Name string
-}
-
 func (mc *MyClient) insertAccountData(w http.ResponseWriter, r *http.Request) {
 	setupResponse(w, r)
 	var err error
