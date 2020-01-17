@@ -49,10 +49,6 @@ func (mc *MyClient) updateAccountData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	id, err := primitive.ObjectIDFromHex(strings.Trim(data.Id, "\""))
 	if err != nil {
 		fmt.Println(err)
@@ -109,10 +105,6 @@ func (mc *MyClient) deleteAccountData(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var data DataAccount
 	err = json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	if err != nil {
 		fmt.Println(err)
 		return
