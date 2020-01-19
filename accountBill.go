@@ -22,7 +22,7 @@ type AccountBillData struct {
 	Description    string `json:"description"`
 	Protein        string `json:"protein"`
 	AddTransaction bool   `json:"addTransaction"`
-	StatusCash     string `json:"statusCash"` // если списываем
+	StatusCash     int    `json:"statusCash"` // если списываем
 }
 
 func (mc *MyClient) insertAccountBillData(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +121,7 @@ func (mc *MyClient) selectAccountBillData(w http.ResponseWriter, r *http.Request
 		descriptionStr, _ := strconv.Unquote(string(descriptionJson))
 		proteinStr, _ := strconv.Unquote(string(proteinJson))
 		addTransactionStr, _ := strconv.ParseBool(string(addTransactionJson))
-		statusCashStr, _ := strconv.Unquote(string(statusCashJson)) // если списываем
+		statusCashStr, _ := strconv.Atoi(string(statusCashJson)) // если списываем
 
 		parsedData = append(parsedData, AccountBillData{
 			Id:             string(idStr),
@@ -131,7 +131,7 @@ func (mc *MyClient) selectAccountBillData(w http.ResponseWriter, r *http.Request
 			Description:    string(descriptionStr),
 			Protein:        string(proteinStr),
 			AddTransaction: bool(addTransactionStr),
-			StatusCash:     string(statusCashStr), // если списываем
+			StatusCash:     int(statusCashStr), // если списываем
 		})
 
 	}

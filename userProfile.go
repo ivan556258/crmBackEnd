@@ -68,10 +68,6 @@ func (mc *MyClient) updateUserProfileData(w http.ResponseWriter, r *http.Request
 		fmt.Println(err)
 		return
 	}
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	id, err := primitive.ObjectIDFromHex(strings.Trim(data.Id, "\""))
 	if err != nil {
 		fmt.Println(err)
@@ -98,6 +94,9 @@ func (mc *MyClient) updateUserProfileData(w http.ResponseWriter, r *http.Request
 			},
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(resultUpdate.ModifiedCount) // output: 1
 }
 
@@ -127,7 +126,7 @@ func (mc *MyClient) deleteUserProfileData(w http.ResponseWriter, r *http.Request
 
 func (mc *MyClient) selectUserProfileData(w http.ResponseWriter, r *http.Request) {
 	setupResponse(w, r)
-	podcastsCollection := mc.db.Collection("account")
+	podcastsCollection := mc.db.Collection("userProfile")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cur, err := podcastsCollection.Find(ctx, bson.D{})

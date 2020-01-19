@@ -89,7 +89,6 @@ func (mc *MyClient) deleteUserCommentData(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(data.Id)
 	podcastsCollection := mc.db.Collection("userComment")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
