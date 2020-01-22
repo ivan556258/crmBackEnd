@@ -148,5 +148,11 @@ func main() {
 	http.HandleFunc("/selectOwnerData", mc.selectOwnerData)
 	http.HandleFunc("/selectAccountDataId", mc.selectAccountDataId)
 	http.HandleFunc("/deleteOwnerData", mc.deleteOwnerData)
+
+	http.HandleFunc("/insertAuthData", mc.insertAuthData)
+	http.HandleFunc("/updateAuthData", mc.updateAuthData)
+	http.HandleFunc("/checkAuthData", mc.checkAuthData)
+	http.HandleFunc("/resetAuthData", mc.resetAuthData)
+	http.HandleFunc("/deleteAuthData", mc.deleteAuthData)
 	panic(http.ListenAndServe(":8081", nil))
 }
