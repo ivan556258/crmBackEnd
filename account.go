@@ -15,8 +15,9 @@ import (
 )
 
 type DataAccount struct {
-	Id   string `json:"_id"`
-	Name string `json:"name"`
+	Id    string `json:"_id"`
+	Name  string `json:"name"`
+	Token string `json:"token"`
 }
 
 func (mc *MyClient) insertAccountData(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +34,7 @@ func (mc *MyClient) insertAccountData(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	_, err = podcastsCollection.InsertOne(ctx, bson.D{
 		{"name", data.Name},
+		{"token", data.Token},
 		{"dateInsert", time.Now()},
 	})
 	if err != nil {
@@ -74,7 +76,9 @@ func (mc *MyClient) selectAccountData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("account")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -18,6 +18,7 @@ type ReceptionNoteData struct {
 	Id       string `json:"_id"`
 	Type     string `json:"type"`
 	Provider string `json:"provider"`
+	Token    string `json:"token"`
 }
 
 func (mc *MyClient) insertReceptionNoteData(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +35,7 @@ func (mc *MyClient) insertReceptionNoteData(w http.ResponseWriter, r *http.Reque
 	defer cancel()
 	_, err = podcastsCollection.InsertOne(ctx, bson.D{
 		{"type", data.Type},
+		{"token", data.Token},
 		{"provider", data.Provider},
 		{"dateInsert", time.Now()},
 	})
@@ -77,7 +79,9 @@ func (mc *MyClient) selectReceptionNoteData(w http.ResponseWriter, r *http.Reque
 	podcastsCollection := mc.db.Collection("receptionNotes")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

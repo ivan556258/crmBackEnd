@@ -4,8 +4,11 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,6 +22,36 @@ func setupResponse(w http.ResponseWriter, req *http.Request) {
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
 	(w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
+func (mc *MyClient) dataAccountBillItemFind(collection, key, value string) string {
+	var data TariffData
+	podcastsCollection := mc.db.Collection(collection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, _ := primitive.ObjectIDFromHex(strings.Trim(value, "\""))
+	podcastsCollection.FindOne(ctx, bson.M{
+		key: id,
+	}).Decode(&data)
+
+	lastnameJson := data.Name
+
+	return lastnameJson
+}
+
+func (mc *MyClient) dataNameFind(collection, key, value string) string {
+	var data DataDriver
+	podcastsCollection := mc.db.Collection(collection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, _ := primitive.ObjectIDFromHex(strings.Trim(value, "\""))
+	podcastsCollection.FindOne(ctx, bson.M{
+		key: id,
+	}).Decode(&data)
+
+	lastnameJson := data.Lastname + " " + " " + data.Firstname + " " + data.Fathername
+
+	return lastnameJson
 }
 
 func NewMyClient(url, db string) (mc *MyClient, err error) {

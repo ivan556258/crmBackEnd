@@ -51,6 +51,7 @@ type DataDriver struct {
 	DateIssuedPicker              string `json:"dateIssuedPicker"`
 	DateIssuedDriverLicencePicker string `json:"dateIssuedDriverLicencePicker"`
 	Status                        string `json:"status"`
+	Token                         string `json:"token"`
 }
 
 func (mc *MyClient) insertDriverData(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +77,7 @@ func (mc *MyClient) insertDriverData(w http.ResponseWriter, r *http.Request) {
 		{"isOwner", data.IsOwner},
 		{"phone", data.Phone},
 		{"email", data.Email},
+		{"token", data.Token},
 		{"inn", data.Inn},
 		{"classInsurance", data.ClassInsurance},
 		{"numberDriverLicence", data.NumberDriverLicence},
@@ -182,7 +184,9 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("drivers")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

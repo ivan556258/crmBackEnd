@@ -19,6 +19,7 @@ type UserSms struct {
 	Recipient string `json:"recipient"`
 	Phone     string `json:"phone"`
 	Message   string `json:"message"`
+	Token     string `json:"token"`
 }
 
 func (mc *MyClient) insertUserSmsData(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +37,7 @@ func (mc *MyClient) insertUserSmsData(w http.ResponseWriter, r *http.Request) {
 	_, err = podcastsCollection.InsertOne(ctx, bson.D{
 		{"recipient", data.Recipient},
 		{"phone", data.Phone},
+		{"token", data.Token},
 		{"message", data.Message},
 		{"dateUpdate", time.Now()},
 		{"dateInsert", time.Now()},
@@ -104,7 +106,9 @@ func (mc *MyClient) selectUserSmsData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("userSms")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

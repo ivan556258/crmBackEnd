@@ -43,6 +43,7 @@ type UserCompany struct {
 	InformNeedChangeOli  bool   `json:"informNeedChangeOli"`
 	TempleteSMSFoo       string `json:"templeteSMSFoo"`
 	TempleteSMSFive      string `json:"templeteSMSFive"`
+	Token                string `json:"token"`
 }
 
 var data UserCompany
@@ -70,6 +71,7 @@ func (mc *MyClient) insertUserCompanyData(w http.ResponseWriter, r *http.Request
 		{"smsDriverBlock", data.SmsDriverBlock},
 		{"smsDriverUnblock", data.SmsDriverUnblock},
 		{"idPark", data.IdPark},
+		{"token", data.Token},
 		{"idClient", data.IdClient},
 		{"scoreYandexAPI", data.ScoreYandexAPI},
 		{"city", data.City},
@@ -157,7 +159,9 @@ func (mc *MyClient) selectUserCompanyDataOne(w http.ResponseWriter, r *http.Requ
 	podcastsCollection := mc.db.Collection("userCompany")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

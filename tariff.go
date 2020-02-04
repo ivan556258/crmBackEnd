@@ -26,6 +26,16 @@ type TariffData struct {
 	StartPayment     string `json:"startPayment"`
 	SummAmount       string `json:"summAmount"`
 	StatusRes        string `json:"statusRes"`
+	Token            string `json:"token"`
+	SummPerMounth    string `json:"summPerMounth"`
+	SummPerDay       string `json:"summPerDay"`
+	SummMo           string `json:"summMo"`
+	SummTu           string `json:"summTu"`
+	SummWe           string `json:"summWe"`
+	SummTh           string `json:"summTh"`
+	SummFr           string `json:"summFr"`
+	SummSa           string `json:"summSa"`
+	SummSu           string `json:"summSu"`
 }
 
 func (mc *MyClient) insertTariffData(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +60,16 @@ func (mc *MyClient) insertTariffData(w http.ResponseWriter, r *http.Request) {
 		{"contractContinue", data.ContractContinue},
 		{"startPayment", data.StartPayment},
 		{"summAmount", data.SummAmount},
+		{"summPerMounth", data.SummPerMounth},
+		{"summPerDay", data.SummPerDay},
+		{"summMo", data.SummMo},
+		{"summTu", data.SummTu},
+		{"summWe", data.SummWe},
+		{"summTh", data.SummTh},
+		{"summFr", data.SummFr},
+		{"summSa", data.SummSa},
+		{"summSu", data.SummSu},
+		{"token", data.Token},
 		{"statusRes", data.StatusRes},
 		{"dateInsert", time.Now()},
 	})
@@ -88,6 +108,15 @@ func (mc *MyClient) updateTariffData(w http.ResponseWriter, r *http.Request) {
 				"contractContinue": data.ContractContinue,
 				"startPayment":     data.StartPayment,
 				"summAmount":       data.SummAmount,
+				"summPerMounth":    data.SummPerMounth,
+				"summPerDay":       data.SummPerDay,
+				"summMo":           data.SummMo,
+				"summTu":           data.SummTu,
+				"summWe":           data.SummWe,
+				"summTh":           data.SummTh,
+				"summFr":           data.SummFr,
+				"summSa":           data.SummSa,
+				"summSu":           data.SummSu,
 				"statusRes":        data.StatusRes,
 				"dateUpdate":       time.Now(),
 			},
@@ -101,7 +130,9 @@ func (mc *MyClient) selectTariffData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("tariff")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -125,6 +156,15 @@ func (mc *MyClient) selectTariffData(w http.ResponseWriter, r *http.Request) {
 		startPaymentJson, err := json.Marshal(result["startPayment"])
 		summAmountJson, err := json.Marshal(result["summAmount"])
 		statusResJson, err := json.Marshal(result["statusRes"])
+		summPerMounthJson, err := json.Marshal(result["summPerMounth"])
+		summPerDayJson, err := json.Marshal(result["summPerDay"])
+		summMoJson, err := json.Marshal(result["summMo"])
+		summTuJson, err := json.Marshal(result["summTu"])
+		summWeJson, err := json.Marshal(result["summWe"])
+		summThJson, err := json.Marshal(result["summTh"])
+		summFrJson, err := json.Marshal(result["summFr"])
+		summSaJson, err := json.Marshal(result["summSa"])
+		summSuJson, err := json.Marshal(result["summSu"])
 
 		idStr, _ := strconv.Unquote(string(idJson))
 		nameStr, _ := strconv.Unquote(string(nameJson))
@@ -137,6 +177,15 @@ func (mc *MyClient) selectTariffData(w http.ResponseWriter, r *http.Request) {
 		startPaymentStr, _ := strconv.Unquote(string(startPaymentJson))
 		summAmountStr, _ := strconv.Unquote(string(summAmountJson))
 		statusResStr, _ := strconv.Unquote(string(statusResJson))
+		summPerMounthStr, _ := strconv.Unquote(string(summPerMounthJson))
+		summPerDayStr, _ := strconv.Unquote(string(summPerDayJson))
+		summMoStr, _ := strconv.Unquote(string(summMoJson))
+		summTuStr, _ := strconv.Unquote(string(summTuJson))
+		summWeStr, _ := strconv.Unquote(string(summWeJson))
+		summThStr, _ := strconv.Unquote(string(summThJson))
+		summFrStr, _ := strconv.Unquote(string(summFrJson))
+		summSaStr, _ := strconv.Unquote(string(summSaJson))
+		summSuStr, _ := strconv.Unquote(string(summSuJson))
 
 		parsedData = append(parsedData, TariffData{
 			Id:               string(idStr),
@@ -150,6 +199,15 @@ func (mc *MyClient) selectTariffData(w http.ResponseWriter, r *http.Request) {
 			StartPayment:     string(startPaymentStr),
 			SummAmount:       string(summAmountStr),
 			StatusRes:        string(statusResStr),
+			SummPerMounth:    string(summPerMounthStr),
+			SummPerDay:       string(summPerDayStr),
+			SummMo:           string(summMoStr),
+			SummTu:           string(summTuStr),
+			SummWe:           string(summWeStr),
+			SummTh:           string(summThStr),
+			SummFr:           string(summFrStr),
+			SummSa:           string(summSaStr),
+			SummSu:           string(summSuStr),
 		})
 
 	}

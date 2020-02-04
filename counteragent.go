@@ -25,6 +25,7 @@ type CounteragentData struct {
 	Address       string `json:"address"`
 	ContactPerson string `json:"contactPerson"`
 	Note          string `json:"note"`
+	Token         string `json:"token"`
 }
 
 func (mc *MyClient) insertCounteragentData(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +46,7 @@ func (mc *MyClient) insertCounteragentData(w http.ResponseWriter, r *http.Reques
 		{"phone", data.Phone},
 		{"email", data.Email},
 		{"type", data.Type},
+		{"token", data.Token},
 		{"nameLow", data.NameLow},
 		{"address", data.Address},
 		{"contactPerson", data.ContactPerson},
@@ -98,7 +100,9 @@ func (mc *MyClient) selectCounteragentData(w http.ResponseWriter, r *http.Reques
 	podcastsCollection := mc.db.Collection("counteragents")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -55,6 +55,7 @@ type Automobile struct {
 	PeriodInsurancePolicyValidityDate string `json:"periodInsurancePolicyValidityDate"`
 	TermValidityTODate                string `json:"termValidityTODate"`
 	DateIssuedSTDate                  string `json:"dateIssuedSTDate"`
+	Token                             string `json:"token"`
 }
 
 func (mc *MyClient) insertAutomobileData(w http.ResponseWriter, r *http.Request) {
@@ -74,6 +75,7 @@ func (mc *MyClient) insertAutomobileData(w http.ResponseWriter, r *http.Request)
 		{"picker", data.Picker},
 		{"brand", data.Brand},
 		{"model", data.Model},
+		{"token", data.Token},
 		{"owner", data.Owner},
 		{"category", data.Category},
 		{"autoRun", data.AutoRun},
@@ -193,7 +195,9 @@ func (mc *MyClient) selectAutomobileData(w http.ResponseWriter, r *http.Request)
 	podcastsCollection := mc.db.Collection("automobiles")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

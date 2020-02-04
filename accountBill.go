@@ -18,11 +18,13 @@ type AccountBillData struct {
 	Id             string `json:"_id"`
 	Cash           string `json:"cash"`
 	Item           string `json:"item"`
+	Score          string `json:"score"`
 	Summ           string `json:"summ"`
 	Description    string `json:"description"`
 	Protein        string `json:"protein"`
 	AddTransaction bool   `json:"addTransaction"`
 	StatusCash     int    `json:"statusCash"` // если списываем
+	Token          string `json:"token"`
 }
 
 func (mc *MyClient) insertAccountBillData(w http.ResponseWriter, r *http.Request) {
@@ -40,10 +42,12 @@ func (mc *MyClient) insertAccountBillData(w http.ResponseWriter, r *http.Request
 	_, err = podcastsCollection.InsertOne(ctx, bson.D{
 		{"cash", data.Cash},
 		{"item", data.Item},
+		{"score", data.Score},
 		{"summ", data.Summ},
 		{"description", data.Description},
 		{"protein", data.Protein},
 		{"addTransaction", data.AddTransaction},
+		{"token", data.Token},
 		{"statusCash", data.StatusCash}, // если списываем
 		{"dateInsert", time.Now()},
 	})
@@ -75,6 +79,7 @@ func (mc *MyClient) updateAccountBillData(w http.ResponseWriter, r *http.Request
 			"$set": bson.M{
 				"cash":           data.Cash,
 				"item":           data.Item,
+				"score":          data.Score,
 				"summ":           data.Summ,
 				"description":    data.Description,
 				"protein":        data.Protein,
@@ -92,7 +97,9 @@ func (mc *MyClient) selectAccountBillData(w http.ResponseWriter, r *http.Request
 	podcastsCollection := mc.db.Collection("accountBill")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,6 +115,7 @@ func (mc *MyClient) selectAccountBillData(w http.ResponseWriter, r *http.Request
 		idJson, err := json.Marshal(result["_id"])
 		cashJson, err := json.Marshal(result["cash"])
 		itemJson, err := json.Marshal(result["item"])
+		scoreJson, err := json.Marshal(result["score"])
 		summJson, err := json.Marshal(result["summ"])
 		descriptionJson, err := json.Marshal(result["description"])
 		proteinJson, err := json.Marshal(result["protein"])
@@ -117,6 +125,7 @@ func (mc *MyClient) selectAccountBillData(w http.ResponseWriter, r *http.Request
 		idStr, _ := strconv.Unquote(string(idJson))
 		cashStr, _ := strconv.Unquote(string(cashJson))
 		itemStr, _ := strconv.Unquote(string(itemJson))
+		scoreStr, _ := strconv.Unquote(string(scoreJson))
 		summStr, _ := strconv.Unquote(string(summJson))
 		descriptionStr, _ := strconv.Unquote(string(descriptionJson))
 		proteinStr, _ := strconv.Unquote(string(proteinJson))
@@ -127,6 +136,7 @@ func (mc *MyClient) selectAccountBillData(w http.ResponseWriter, r *http.Request
 			Id:             string(idStr),
 			Cash:           string(cashStr),
 			Item:           string(itemStr),
+			Score:          string(scoreStr),
 			Summ:           string(summStr),
 			Description:    string(descriptionStr),
 			Protein:        string(proteinStr),

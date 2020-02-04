@@ -19,6 +19,8 @@ type AccountBillItemData struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
+	TypeStr     string `json:"typeStr"`
+	Token       string `json:"token"`
 }
 
 func (mc *MyClient) insertAccountBillItemData(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +32,8 @@ func (mc *MyClient) insertAccountBillItemData(w http.ResponseWriter, r *http.Req
 		fmt.Println(err)
 		return
 	}
+
+	dataStr := typeStrFind(data.Type)
 	podcastsCollection := mc.db.Collection("accountBillItem")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -37,6 +41,8 @@ func (mc *MyClient) insertAccountBillItemData(w http.ResponseWriter, r *http.Req
 		{"name", data.Name},
 		{"description", data.Description},
 		{"type", data.Type},
+		{"typeStr", dataStr},
+		{"token", data.Token},
 		{"dateInsert", time.Now()},
 	})
 	if err != nil {
@@ -57,6 +63,8 @@ func (mc *MyClient) updateAccountBillItemData(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	dataStr := typeStrFind(data.Type)
 	podcastsCollection := mc.db.Collection("accountBillItem")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -68,6 +76,7 @@ func (mc *MyClient) updateAccountBillItemData(w http.ResponseWriter, r *http.Req
 				"name":        data.Name,
 				"description": data.Description,
 				"type":        data.Type,
+				"typeStr":     dataStr,
 				"dateUpdate":  time.Now(),
 			},
 		},
@@ -80,7 +89,9 @@ func (mc *MyClient) selectAccountBillItemData(w http.ResponseWriter, r *http.Req
 	podcastsCollection := mc.db.Collection("accountBillItem")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,17 +108,20 @@ func (mc *MyClient) selectAccountBillItemData(w http.ResponseWriter, r *http.Req
 		nameJson, err := json.Marshal(result["name"])
 		descriptionJson, err := json.Marshal(result["description"])
 		typeJson, err := json.Marshal(result["type"])
+		typeStrJson, err := json.Marshal(result["typeStr"])
 
 		idStr, _ := strconv.Unquote(string(idJson))
 		nameStr, _ := strconv.Unquote(string(nameJson))
 		descriptionStr, _ := strconv.Unquote(string(descriptionJson))
 		typeStr, _ := strconv.Unquote(string(typeJson))
+		typeStrStr, _ := strconv.Unquote(string(typeStrJson))
 
 		parsedData = append(parsedData, AccountBillItemData{
 			Id:          string(idStr),
 			Name:        string(nameStr),
 			Description: string(descriptionStr),
 			Type:        string(typeStr),
+			TypeStr:     string(typeStrStr),
 		})
 
 	}
@@ -139,6 +153,16 @@ func (mc *MyClient) selectAccountBillItemDataOne(w http.ResponseWriter, r *http.
 	bytes, err := json.Marshal(data)
 
 	w.Write([]byte(bytes))
+}
+
+func typeStrFind(val string) string {
+	var typeStr string
+	if val == "0" {
+		typeStr = "расход"
+	} else {
+		typeStr = "приход"
+	}
+	return typeStr
 }
 
 func (mc *MyClient) deleteAccountBillItemData(w http.ResponseWriter, r *http.Request) {

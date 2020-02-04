@@ -43,6 +43,7 @@ type DataTechnicalService struct {
 	StateTyre                     string `json:"stateTyre"`
 	ForeginLicenceRegistration    bool   `json:"foreginLicenceRegistration"`
 	DateData                      string `json:"dateData"`
+	Token                         string `json:"token"`
 }
 
 func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +87,7 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 		{"stateTyre", data.StateTyre},
 		{"foreginLicenceRegistration", data.ForeginLicenceRegistration},
 		{"dateData", data.DateData},
+		{"token", data.Token},
 		{"dateInsert", time.Now()},
 		{"dateUpdate", nil},
 	})
@@ -158,7 +160,9 @@ func (mc *MyClient) selectTechnicalServiceData(w http.ResponseWriter, r *http.Re
 	podcastsCollection := mc.db.Collection("technicalService")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

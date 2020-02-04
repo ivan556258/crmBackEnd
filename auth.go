@@ -23,6 +23,7 @@ type AuthData struct {
 	Password string `json:"password"`
 	Ip       string `json:"ip"`
 	Browser  string `json:"browser"`
+	Token    string `json:"token"`
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
@@ -66,6 +67,13 @@ func (mc *MyClient) insertAuthData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	var token string
+	token = randStringBytes()
+	var resCheck bool = mc.checkFind("auth", "token", token)
+	if resCheck == false {
+		w.Write([]byte("1111"))
+		return
+	}
 
 	podcastsCollection := mc.db.Collection("auth")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -73,10 +81,11 @@ func (mc *MyClient) insertAuthData(w http.ResponseWriter, r *http.Request) {
 	_, err = podcastsCollection.InsertOne(ctx, bson.D{
 		{"email", data.Email},
 		{"phone", data.Phone},
+		{"token", data.Token},
 		{"password", string(hashedPassword)},
 		{"ip", data.Ip},
 		{"browser", data.Browser},
-		{"token", "fw54654wef6wef5w4EFFef_eff545"},
+		{"token", token},
 		{"dateInsert", time.Now()},
 	})
 	if err != nil {
@@ -114,12 +123,15 @@ func (mc *MyClient) checkAuthData(w http.ResponseWriter, r *http.Request) {
 		}
 		id, err := json.Marshal(result["_id"])
 		password, err := json.Marshal(result["password"])
+		token, err := json.Marshal(result["token"])
 
 		sid, _ := strconv.Unquote(string(id))
 		spassword, _ := strconv.Unquote(string(password))
+		stoken, _ := strconv.Unquote(string(token))
 		parsedData = AuthData{
 			Id:       string(sid),
 			Password: string(spassword),
+			Token:    string(stoken),
 		}
 
 	}
@@ -130,7 +142,7 @@ func (mc *MyClient) checkAuthData(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("0"))
 		return
 	}
-	bytes, err := json.Marshal(parsedData.Id)
+	bytes, err := json.Marshal(parsedData.Token)
 
 	w.Write([]byte(bytes))
 
@@ -224,4 +236,40 @@ func (mc *MyClient) resetAuthData(w http.ResponseWriter, r *http.Request) {
 
 func (mc *MyClient) deleteAuthData(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(4)
+}
+func (mc *MyClient) checkFind(collection, key, value string) bool {
+	var err error
+
+	podcastsCollection := mc.db.Collection(collection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cur, err := podcastsCollection.Find(ctx, bson.M{
+		key: value,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	var id []byte
+	for cur.Next(ctx) {
+		var result bson.M
+		err := cur.Decode(&result)
+		if err != nil {
+			log.Fatal(err)
+		}
+		id, err = json.Marshal(result["_id"])
+		if err != nil {
+			panic(err)
+		}
+	}
+	var res bool
+	res = false
+	if string(id) == "" {
+		res = true
+	}
+	return res
+}
+
+func (mc *MyClient) getToken() {
+
 }

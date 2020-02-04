@@ -26,6 +26,7 @@ type UserProfile struct {
 	Phone              string `json:"phone"`
 	StatusRes          string `json:"statusRes"`
 	GroundsForContract string `json:"groundsForContract"`
+	Token              string `json:"token"`
 }
 
 func (mc *MyClient) insertUserProfileData(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +50,7 @@ func (mc *MyClient) insertUserProfileData(w http.ResponseWriter, r *http.Request
 		{"name", data.Name},
 		{"fatherName", data.FatherName},
 		{"phone", data.Phone},
+		{"token", data.Token},
 		{"statusRes", data.StatusRes},
 		{"groundsForContract", data.GroundsForContract},
 		{"dateUpdate", time.Now()},
@@ -129,7 +131,9 @@ func (mc *MyClient) selectUserProfileData(w http.ResponseWriter, r *http.Request
 	podcastsCollection := mc.db.Collection("userProfile")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

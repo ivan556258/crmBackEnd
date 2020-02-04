@@ -19,6 +19,7 @@ type UserComment struct {
 	Driver  bool   `json:"driver"`
 	Comment string `json:"comment"`
 	Notify  string `json:"notify"`
+	Token   string `json:"token"`
 }
 
 func (mc *MyClient) insertUserCommentData(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +38,7 @@ func (mc *MyClient) insertUserCommentData(w http.ResponseWriter, r *http.Request
 		{"driver", data.Driver},
 		{"comment", data.Comment},
 		{"notify", data.Notify},
+		{"token", data.Token},
 		{"dateUpdate", time.Now()},
 		{"dateInsert", time.Now()},
 	})
@@ -103,7 +105,9 @@ func (mc *MyClient) selectUserCommentData(w http.ResponseWriter, r *http.Request
 	podcastsCollection := mc.db.Collection("userComment")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}

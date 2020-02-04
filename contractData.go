@@ -25,6 +25,7 @@ type Data struct {
 	Continues bool   `json:"continues"`
 	MoreInfo  string `json:"moreInfo"`
 	Status    string `json:"status"`
+	Token     string `json:"token"`
 }
 
 func (mc *MyClient) insertContractData(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +37,6 @@ func (mc *MyClient) insertContractData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-
 	podcastsCollection := mc.db.Collection("contractsRent")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -49,6 +49,7 @@ func (mc *MyClient) insertContractData(w http.ResponseWriter, r *http.Request) {
 		{"enddate", data.Enddate},
 		{"continues", data.Continues},
 		{"moreInfo", data.MoreInfo},
+		{"token", data.Token},
 		{"status", data.Status},
 		{"dateInsert", time.Now()},
 		{"dateUpdate", nil},
@@ -104,7 +105,9 @@ func (mc *MyClient) selectContractData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("contractsRent")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := podcastsCollection.Find(ctx, bson.D{})
+	r.ParseForm()
+	token := string(r.Form.Get("token"))
+	cur, err := podcastsCollection.Find(ctx, bson.D{{"token", token}})
 	if err != nil {
 		log.Fatal(err)
 	}
