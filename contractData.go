@@ -15,17 +15,21 @@ import (
 )
 
 type Data struct {
-	Id        string `json:"_id"`
-	Number    string `json:"number"`
-	Driver    string `json:"driver"`
-	Auto      string `json:"auto"`
-	Tariff    string `json:"tariff"`
-	Begindate string `json:"begindate"`
-	Enddate   string `json:"enddate"`
-	Continues bool   `json:"continues"`
-	MoreInfo  string `json:"moreInfo"`
-	Status    string `json:"status"`
-	Token     string `json:"token"`
+	Id          string `json:"_id"`
+	Number      string `json:"number"`
+	Driver      string `json:"driver"`
+	Auto        string `json:"auto"`
+	Tariff      string `json:"tariff"`
+	DriverStr   string `json:"driverStr"`
+	AutoStr     string `json:"autoStr"`
+	TariffStr   string `json:"tariffStr"`
+	Begindate   string `json:"begindate"`
+	Enddate     string `json:"enddate"`
+	Continues   bool   `json:"continues"`
+	MoreInfo    string `json:"moreInfo"`
+	Status      string `json:"status"`
+	Token       string `json:"token"`
+	DriverPhone string `json:"driverPhone"`
 }
 
 func (mc *MyClient) insertContractData(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +41,10 @@ func (mc *MyClient) insertContractData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
+	var driver string = mc.dataNameFind("drivers", "_id", data.Driver)
+	var tariff string = mc.dataAccountBillItemFind("accountBillItem", "_id", data.Tariff)
+	var auto string = mc.dataAutoFind("automobiles", "_id", data.Auto)
+
 	podcastsCollection := mc.db.Collection("contractsRent")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -45,6 +53,10 @@ func (mc *MyClient) insertContractData(w http.ResponseWriter, r *http.Request) {
 		{"driver", data.Driver},
 		{"auto", data.Auto},
 		{"tariff", data.Tariff},
+		{"driverStr", driver},
+		{"autoStr", auto},
+
+		{"tariffStr", tariff},
 		{"begindate", data.Begindate},
 		{"enddate", data.Enddate},
 		{"continues", data.Continues},
@@ -76,6 +88,10 @@ func (mc *MyClient) updateContractData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	var driver string = mc.dataNameFind("drivers", "_id", data.Driver)
+	var tariff string = mc.dataAccountBillItemFind("accountBillItem", "_id", data.Tariff)
+	var auto string = mc.dataAutoFind("automobiles", "_id", data.Auto)
 	podcastsCollection := mc.db.Collection("contractsRent")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -88,6 +104,9 @@ func (mc *MyClient) updateContractData(w http.ResponseWriter, r *http.Request) {
 				"driver":     data.Driver,
 				"auto":       data.Auto,
 				"tariff":     data.Tariff,
+				"driverStr":  driver,
+				"autoStr":    auto,
+				"tariffStr":  tariff,
 				"begindate":  data.Begindate,
 				"enddate":    data.Enddate,
 				"continues":  data.Continues,
@@ -125,6 +144,9 @@ func (mc *MyClient) selectContractData(w http.ResponseWriter, r *http.Request) {
 		driverJson, err := json.Marshal(result["driver"])
 		autoJson, err := json.Marshal(result["auto"])
 		tariffJson, err := json.Marshal(result["tariff"])
+		driverStrJson, err := json.Marshal(result["driverStr"])
+		autoStrJson, err := json.Marshal(result["autoStr"])
+		tariffStrJson, err := json.Marshal(result["tariffStr"])
 		begindateJson, err := json.Marshal(result["begindate"])
 		enddateJson, err := json.Marshal(result["enddate"])
 		continuesJson, err := json.Marshal(result["continues"])
@@ -136,31 +158,42 @@ func (mc *MyClient) selectContractData(w http.ResponseWriter, r *http.Request) {
 		driverStr, _ := strconv.Unquote(string(driverJson))
 		autoStr, _ := strconv.Unquote(string(autoJson))
 		tariffStr, _ := strconv.Unquote(string(tariffJson))
+		driverStrStr, _ := strconv.Unquote(string(driverStrJson))
+		autoStrStr, _ := strconv.Unquote(string(autoStrJson))
+		tariffStrStr, _ := strconv.Unquote(string(tariffStrJson))
 		begindateStr, _ := strconv.Unquote(string(begindateJson))
 		enddateStr, _ := strconv.Unquote(string(enddateJson))
 		continuesStr, _ := strconv.ParseBool(string(continuesJson))
 		moreInfoStr, _ := strconv.Unquote(string(moreInfoJson))
 		statusStr, _ := strconv.Unquote(string(statusJson))
 
+		dataDriver := mc.dataDriverFind("drivers", "_id", string(driverStr))
+
 		parsedData = append(parsedData, Data{
-			Id:        string(idStr),
-			Number:    string(numberStr),
-			Driver:    string(driverStr),
-			Auto:      string(autoStr),
-			Tariff:    string(tariffStr),
-			Begindate: string(begindateStr),
-			Enddate:   string(enddateStr),
-			Continues: bool(continuesStr),
-			MoreInfo:  string(moreInfoStr),
-			Status:    string(statusStr),
+			Id:          string(idStr),
+			Number:      string(numberStr),
+			Driver:      string(driverStr),
+			Auto:        string(autoStr),
+			Tariff:      string(tariffStr),
+			DriverStr:   string(driverStrStr),
+			AutoStr:     string(autoStrStr),
+			TariffStr:   string(tariffStrStr),
+			Begindate:   string(begindateStr),
+			Enddate:     string(enddateStr),
+			Continues:   bool(continuesStr),
+			MoreInfo:    string(moreInfoStr),
+			Status:      string(statusStr),
+			DriverPhone: string(dataDriver.Phone),
 		})
 
 	}
 	w.Header().Set("Content-Type", "application/json")
-
 	bytes, err := json.Marshal(parsedData)
-
 	w.Write([]byte(bytes))
+}
+
+func moreInfoDriver() {
+
 }
 
 func (mc *MyClient) deleteContractData(w http.ResponseWriter, r *http.Request) {
@@ -298,8 +331,6 @@ func (mc *MyClient) selectContractDataOne(w http.ResponseWriter, r *http.Request
 
 	}
 	w.Header().Set("Content-Type", "application/json")
-
 	bytes, err := json.Marshal(parsedData)
-
 	w.Write([]byte(bytes))
 }

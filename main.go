@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -52,6 +53,50 @@ func (mc *MyClient) dataNameFind(collection, key, value string) string {
 	lastnameJson := data.Lastname + " " + " " + data.Firstname + " " + data.Fathername
 
 	return lastnameJson
+}
+
+func (mc *MyClient) dataDriverFind(collection, key, value string) DataDriver {
+	var data DataDriver
+	podcastsCollection := mc.db.Collection(collection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, _ := primitive.ObjectIDFromHex(strings.Trim(value, "\""))
+	podcastsCollection.FindOne(ctx, bson.M{
+		key: id,
+	}).Decode(&data)
+
+	//lastnameJson := data.Lastname + " " + " " + data.Firstname + " " + data.Fathername
+
+	return data
+}
+
+func (mc *MyClient) dataNameFindAll(collection, key, value string) DataDriver {
+	var data DataDriver
+	podcastsCollection := mc.db.Collection(collection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, _ := primitive.ObjectIDFromHex(strings.Trim(value, "\""))
+	podcastsCollection.FindOne(ctx, bson.M{
+		key: id,
+	}).Decode(&data)
+
+	return data
+}
+
+func (mc *MyClient) dataAutoFind(collection, key, value string) string {
+	var data Automobile
+	podcastsCollection := mc.db.Collection(collection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, _ := primitive.ObjectIDFromHex(strings.Trim(value, "\""))
+	podcastsCollection.FindOne(ctx, bson.M{
+		key: id,
+	}).Decode(&data)
+
+	nameJson := data.Model + " " + " " + data.NumberSymbol + " " + data.Owner
+	fmt.Println(data)
+	fmt.Println(nameJson)
+	return nameJson
 }
 
 func NewMyClient(url, db string) (mc *MyClient, err error) {

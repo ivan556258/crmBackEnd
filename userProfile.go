@@ -12,6 +12,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserProfile struct {
@@ -38,6 +39,14 @@ func (mc *MyClient) insertUserProfileData(w http.ResponseWriter, r *http.Request
 		fmt.Println(err)
 		return
 	}
+
+	password := []byte(data.Password)
+	// Hashing the password with the default cost of 10
+	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+
 	podcastsCollection := mc.db.Collection("userProfile")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -45,7 +54,7 @@ func (mc *MyClient) insertUserProfileData(w http.ResponseWriter, r *http.Request
 		{"type", data.Type},
 		{"email", data.Email},
 		{"login", data.Login},
-		{"password", data.Password},
+		{"password", string(hashedPassword)},
 		{"lastName", data.LastName},
 		{"name", data.Name},
 		{"fatherName", data.FatherName},
@@ -65,6 +74,7 @@ func (mc *MyClient) updateUserProfileData(w http.ResponseWriter, r *http.Request
 	setupResponse(w, r)
 	var err error
 	var data UserProfile
+	var bMAuth bson.M
 	err = json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		fmt.Println(err)
@@ -74,6 +84,43 @@ func (mc *MyClient) updateUserProfileData(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	if data.Password != "" {
+		password := []byte(data.Password)
+		// Hashing the password with the default cost of 10
+		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+		if err != nil {
+			panic(err)
+		}
+
+		bMAuth = bson.M{
+			"type":               data.Type,
+			"email":              data.Email,
+			"login":              data.Login,
+			"password":           string(hashedPassword),
+			"lastName":           data.LastName,
+			"name":               data.Name,
+			"fatherName":         data.FatherName,
+			"phone":              data.Phone,
+			"statusRes":          data.StatusRes,
+			"groundsForContract": data.GroundsForContract,
+			"dateUpdate":         time.Now(),
+		}
+	} else {
+		bMAuth = bson.M{
+			"type":               data.Type,
+			"email":              data.Email,
+			"login":              data.Login,
+			"lastName":           data.LastName,
+			"name":               data.Name,
+			"fatherName":         data.FatherName,
+			"phone":              data.Phone,
+			"statusRes":          data.StatusRes,
+			"groundsForContract": data.GroundsForContract,
+			"dateUpdate":         time.Now(),
+		}
+	}
+
 	podcastsCollection := mc.db.Collection("userProfile")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -81,19 +128,7 @@ func (mc *MyClient) updateUserProfileData(w http.ResponseWriter, r *http.Request
 		ctx,
 		bson.M{"_id": id},
 		bson.M{
-			"$set": bson.M{
-				"type":               data.Type,
-				"email":              data.Email,
-				"login":              data.Login,
-				"password":           data.Password,
-				"lastName":           data.LastName,
-				"name":               data.Name,
-				"fatherName":         data.FatherName,
-				"phone":              data.Phone,
-				"statusRes":          data.StatusRes,
-				"groundsForContract": data.GroundsForContract,
-				"dateUpdate":         time.Now(),
-			},
+			"$set": bMAuth,
 		},
 	)
 	if err != nil {
@@ -150,7 +185,6 @@ func (mc *MyClient) selectUserProfileData(w http.ResponseWriter, r *http.Request
 		typeJson, err := json.Marshal(result["type"])
 		emailJson, err := json.Marshal(result["email"])
 		loginJson, err := json.Marshal(result["login"])
-		passwordJson, err := json.Marshal(result["password"])
 		lastNameJson, err := json.Marshal(result["lastName"])
 		nameJson, err := json.Marshal(result["name"])
 		fatherNameJson, err := json.Marshal(result["fatherName"])
@@ -162,7 +196,6 @@ func (mc *MyClient) selectUserProfileData(w http.ResponseWriter, r *http.Request
 		typeStr, _ := strconv.Unquote(string(typeJson))
 		emailStr, _ := strconv.Unquote(string(emailJson))
 		loginStr, _ := strconv.Unquote(string(loginJson))
-		passwordStr, _ := strconv.Unquote(string(passwordJson))
 		lastNameStr, _ := strconv.Unquote(string(lastNameJson))
 		nameStr, _ := strconv.Unquote(string(nameJson))
 		fatherNameStr, _ := strconv.Unquote(string(fatherNameJson))
@@ -175,7 +208,6 @@ func (mc *MyClient) selectUserProfileData(w http.ResponseWriter, r *http.Request
 			Type:               string(typeStr),
 			Email:              string(emailStr),
 			Login:              string(loginStr),
-			Password:           string(passwordStr),
 			LastName:           string(lastNameStr),
 			Name:               string(nameStr),
 			FatherName:         string(fatherNameStr),

@@ -15,35 +15,49 @@ import (
 )
 
 type DataTechnicalService struct {
-	Id                            string `json:"_id"`
-	Auto                          string `json:"auto"`
-	TypeJob                       string `json:"typeJob"`
-	AutoRun                       string `json:"autoRun"`
-	ListJobs                      string `json:"listJobs"`
-	Contragent                    string `json:"contragent"`
-	StatestatePassengerSeat       string `json:"statestatePassengerSeat"`
-	ResultDyagnostic              string `json:"resultDyagnostic"`
-	CoastSparePart                string `json:"coastSparePart"`
-	CoastJobs                     string `json:"coastJobs"`
-	StatusRes                     string `json:"statusRes"`
-	TyreBrand                     string `json:"tyreBrand"`
-	BodyCabineDamage              string `json:"bodyCabineDamage"`
-	AutoCleanliness               string `json:"autoCleanliness"`
-	OverallInteriorCleanliness    string `json:"overallInteriorCleanliness"`
-	StateCeling                   string `json:"stateCeling"`
-	StatePassengerSeat            string `json:"statePassengerSeat"`
-	StateDriverSeat               string `json:"stateDriverSeat"`
-	StateSeatbelt                 string `json:"stateSeatbelt"`
-	StateSteeringWheelAndSwitches string `json:"stateSteeringWheelAndSwitches"`
-	StatePanel                    string `json:"statePanel"`
-	StateSwitchKPP                string `json:"stateSwitchKPP"`
-	WindscreenCondition           string `json:"windscreenCondition"`
-	StateLeftwindscreen           string `json:"stateLeftwindscreen"`
-	TrunkCondition                string `json:"trunkCondition"`
-	StateTyre                     string `json:"stateTyre"`
-	ForeginLicenceRegistration    bool   `json:"foreginLicenceRegistration"`
-	DateData                      string `json:"dateData"`
-	Token                         string `json:"token"`
+	Id                            string      `json:"_id"`
+	Auto                          string      `json:"auto"`
+	TypeJob                       string      `json:"typeJob"`
+	AutoRun                       string      `json:"autoRun"`
+	ListJobs                      string      `json:"listJobs"`
+	Contragent                    string      `json:"contragent"`
+	StatestatePassengerSeat       string      `json:"statestatePassengerSeat"`
+	ResultDyagnostic              string      `json:"resultDyagnostic"`
+	CoastSparePart                string      `json:"coastSparePart"`
+	CoastJobs                     string      `json:"coastJobs"`
+	StatusRes                     string      `json:"statusRes"`
+	TyreBrand                     string      `json:"tyreBrand"`
+	BodyCabineDamage              string      `json:"bodyCabineDamage"`
+	AutoCleanliness               string      `json:"autoCleanliness"`
+	OverallInteriorCleanliness    string      `json:"overallInteriorCleanliness"`
+	StateCeling                   string      `json:"stateCeling"`
+	StatePassengerSeat            string      `json:"statePassengerSeat"`
+	StateDriverSeat               string      `json:"stateDriverSeat"`
+	StateSeatbelt                 string      `json:"stateSeatbelt"`
+	StateSteeringWheelAndSwitches string      `json:"stateSteeringWheelAndSwitches"`
+	StatePanel                    string      `json:"statePanel"`
+	StateSwitchKPP                string      `json:"stateSwitchKPP"`
+	WindscreenCondition           string      `json:"windscreenCondition"`
+	StateLeftwindscreen           string      `json:"stateLeftwindscreen"`
+	TrunkCondition                string      `json:"trunkCondition"`
+	StateTyre                     string      `json:"stateTyre"`
+	ForeginLicenceRegistration    bool        `json:"foreginLicenceRegistration"`
+	DateData                      string      `json:"dateData"`
+	Token                         string      `json:"token"`
+	Parts                         interface{} `json:"parts"`
+	OtherParts                    interface{} `json:"otherPart"`
+}
+
+type PartsStruct struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
+
+type OtherPartsStruct struct {
+	Name     string `json:"name"`
+	Articale string `json:"articale"`
+	HowMuch  string `json:"howmuch"`
+	Price    string `json:"price"`
 }
 
 func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Request) {
@@ -56,40 +70,74 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	strPartsStruct, _ := data.Parts.(string)
+	strOtherPartsStruct, _ := data.OtherParts.(string)
+
+	var i []PartsStruct
+	var y []OtherPartsStruct
+
+	var bMPartsStruct []bson.M
+	var bMstrOtherPartsStruct []bson.M
+
+	if err := json.Unmarshal([]byte(strPartsStruct), &i); err != nil {
+		fmt.Println("ugh: ", err)
+	}
+
+	if err := json.Unmarshal([]byte(strOtherPartsStruct), &y); err != nil {
+		fmt.Println("ugh: ", err)
+	}
+	for _, u := range i {
+		bMPartsStruct = append(bMPartsStruct, bson.M{
+			"title":       u.Title,
+			"description": u.Description,
+		})
+	}
+	for _, u := range y {
+		bMstrOtherPartsStruct = append(bMstrOtherPartsStruct, bson.M{
+			"name":     u.Name,
+			"articale": u.Articale,
+			"howMuch":  u.HowMuch,
+			"price":    u.Price,
+		})
+	}
+
 	podcastsCollection := mc.db.Collection("technicalService")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err = podcastsCollection.InsertOne(ctx, bson.D{
-		{"auto", data.Auto},
-		{"typeJob", data.TypeJob},
-		{"autoRun", data.AutoRun},
-		{"listJobs", data.ListJobs},
-		{"contragent", data.Contragent},
-		{"statestatePassengerSeat", data.StatestatePassengerSeat},
-		{"resultDyagnostic", data.ResultDyagnostic},
-		{"coastSparePart", data.CoastSparePart},
-		{"coastJobs", data.CoastJobs},
-		{"statusRes", data.StatusRes},
-		{"tyreBrand", data.TyreBrand},
-		{"bodyCabineDamage", data.BodyCabineDamage},
-		{"autoCleanliness", data.AutoCleanliness},
-		{"overallInteriorCleanliness", data.OverallInteriorCleanliness},
-		{"stateCeling", data.StateCeling},
-		{"statePassengerSeat", data.StatePassengerSeat},
-		{"stateDriverSeat", data.StateDriverSeat},
-		{"stateSeatbelt", data.StateSeatbelt},
-		{"stateSteeringWheelAndSwitches", data.StateSteeringWheelAndSwitches},
-		{"statePanel", data.StatePanel},
-		{"stateSwitchKPP", data.StateSwitchKPP},
-		{"windscreenCondition", data.WindscreenCondition},
-		{"stateLeftwindscreen", data.StateLeftwindscreen},
-		{"trunkCondition", data.TrunkCondition},
-		{"stateTyre", data.StateTyre},
-		{"foreginLicenceRegistration", data.ForeginLicenceRegistration},
-		{"dateData", data.DateData},
-		{"token", data.Token},
-		{"dateInsert", time.Now()},
-		{"dateUpdate", nil},
+
+	_, err = podcastsCollection.InsertOne(ctx, bson.M{
+		"auto":                          data.Auto,
+		"typeJob":                       data.TypeJob,
+		"autoRun":                       data.AutoRun,
+		"listJobs":                      data.ListJobs,
+		"contragent":                    data.Contragent,
+		"statestatePassengerSeat":       data.StatestatePassengerSeat,
+		"resultDyagnostic":              data.ResultDyagnostic,
+		"coastSparePart":                data.CoastSparePart,
+		"coastJobs":                     data.CoastJobs,
+		"statusRes":                     data.StatusRes,
+		"tyreBrand":                     data.TyreBrand,
+		"bodyCabineDamage":              data.BodyCabineDamage,
+		"autoCleanliness":               data.AutoCleanliness,
+		"overallInteriorCleanliness":    data.OverallInteriorCleanliness,
+		"stateCeling":                   data.StateCeling,
+		"statePassengerSeat":            data.StatePassengerSeat,
+		"stateDriverSeat":               data.StateDriverSeat,
+		"stateSeatbelt":                 data.StateSeatbelt,
+		"stateSteeringWheelAndSwitches": data.StateSteeringWheelAndSwitches,
+		"statePanel":                    data.StatePanel,
+		"stateSwitchKPP":                data.StateSwitchKPP,
+		"windscreenCondition":           data.WindscreenCondition,
+		"stateLeftwindscreen":           data.StateLeftwindscreen,
+		"trunkCondition":                data.TrunkCondition,
+		"stateTyre":                     data.StateTyre,
+		"foreginLicenceRegistration":    data.ForeginLicenceRegistration,
+		"dateData":                      data.DateData,
+		"parts":                         bMPartsStruct,
+		"otherParts":                    bMstrOtherPartsStruct,
+		"token":                         data.Token,
+		"dateInsert":                    time.Now(),
+		"dateUpdate":                    nil,
 	})
 	if err != nil {
 		log.Fatal(err)
