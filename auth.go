@@ -139,12 +139,64 @@ func (mc *MyClient) checkAuthData(w http.ResponseWriter, r *http.Request) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(parsedData.Password), []byte(data.Password))
 	if err != nil {
+		idAuth := mc.checkAuthUserProfileData(data.Phone, data.Password)
+		if idAuth != "0" {
+			bytes, _ := json.Marshal(idAuth)
+			w.Write([]byte(bytes))
+			return
+		}
 		w.Write([]byte("0"))
 		return
 	}
 	bytes, err := json.Marshal(parsedData.Token)
-
 	w.Write([]byte(bytes))
+
+}
+
+func (mc *MyClient) checkAuthUserProfileData(phone, password string) string {
+	var err error
+
+	// Comparing the password with the hash
+
+	podcastsCollection := mc.db.Collection("userProfile")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cur, err := podcastsCollection.Find(ctx, bson.M{
+		"phone": phone,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	var parsedData UserProfile
+	for cur.Next(ctx) {
+		var result bson.M
+		err := cur.Decode(&result)
+		if err != nil {
+			log.Fatal(err)
+		}
+		id, err := json.Marshal(result["_id"])
+		password, err := json.Marshal(result["password"])
+		token, err := json.Marshal(result["token"])
+
+		sid, _ := strconv.Unquote(string(id))
+		spassword, _ := strconv.Unquote(string(password))
+		stoken, _ := strconv.Unquote(string(token))
+
+		parsedData = UserProfile{
+			Id:       string(sid),
+			Password: string(spassword),
+			Token:    string(stoken),
+		}
+
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(parsedData.Password), []byte(password))
+	if err != nil {
+		return "0"
+	} else {
+		return parsedData.Token
+	}
 
 }
 
