@@ -99,6 +99,7 @@ func (mc *MyClient) insertDriverData(w http.ResponseWriter, r *http.Request) {
 		{"dateIssuedDate", data.DateIssuedDate},
 		{"brithday", data.Brithday},
 		{"issued", data.Issued},
+		{"free", 1},
 		{"codePollicia", data.CodePollicia},
 		{"brithdaypicker", data.Brithdaypicker},
 		{"dateIssuedPicker", data.DateIssuedPicker},

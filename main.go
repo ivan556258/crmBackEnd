@@ -198,6 +198,7 @@ func main() {
 	http.HandleFunc("/selectNomenclatureData", mc.selectNomenclatureData)
 	http.HandleFunc("/selectNomenclatureDataOne", mc.selectNomenclatureDataOne)
 	http.HandleFunc("/deleteNomenclatureData", mc.deleteNomenclatureData)
+	http.HandleFunc("/selectNomenclatureIsPlaceData", mc.selectNomenclatureIsPlaceData)
 
 	http.HandleFunc("/updateCounteragentData", mc.updateCounteragentData)
 	http.HandleFunc("/insertCounteragentData", mc.insertCounteragentData)

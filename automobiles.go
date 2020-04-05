@@ -55,6 +55,7 @@ type Automobile struct {
 	PeriodInsurancePolicyValidityDate string `json:"periodInsurancePolicyValidityDate"`
 	TermValidityTODate                string `json:"termValidityTODate"`
 	DateIssuedSTDate                  string `json:"dateIssuedSTDate"`
+	Free                              string `json:"free"`
 	Token                             string `json:"token"`
 }
 
@@ -111,6 +112,7 @@ func (mc *MyClient) insertAutomobileData(w http.ResponseWriter, r *http.Request)
 		{"periodInsurancePolicyValidityDate", data.PeriodInsurancePolicyValidityDate},
 		{"termValidityTODate", data.TermValidityTODate},
 		{"DateIssuedSTDate", data.DateIssuedSTDate},
+		{"free", "1"},
 		{"dateInsert", time.Now()},
 		{"dateUpdate", nil},
 	})

@@ -54,6 +54,7 @@ func (mc *MyClient) insertOwnerData(w http.ResponseWriter, r *http.Request) {
 		{"profitInterest", data.ProfitInterest},
 		{"perDay", data.PerDay},
 		{"token", data.Token},
+		{"free", 1},
 		{"perMounth", data.PerMounth},
 		{"conditionJobs", data.ConditionJobs},
 		{"dateInsert", time.Now()},

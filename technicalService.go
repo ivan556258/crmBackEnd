@@ -45,6 +45,7 @@ type DataTechnicalService struct {
 	DateData                      string      `json:"dateData"`
 	Token                         string      `json:"token"`
 	Parts                         interface{} `json:"parts"`
+	Free                          string      `json:"free"`
 	OtherParts                    interface{} `json:"otherPart"`
 }
 
@@ -104,7 +105,7 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 	podcastsCollection := mc.db.Collection("technicalService")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
+	fmt.Println(data.Auto)
 	_, err = podcastsCollection.InsertOne(ctx, bson.M{
 		"auto":                          data.Auto,
 		"typeJob":                       data.TypeJob,
@@ -136,6 +137,7 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 		"parts":                         bMPartsStruct,
 		"otherParts":                    bMstrOtherPartsStruct,
 		"token":                         data.Token,
+		"free":                          data.Free,
 		"dateInsert":                    time.Now(),
 		"dateUpdate":                    nil,
 	})
