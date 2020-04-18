@@ -50,7 +50,10 @@ type DataDriver struct {
 	Brithdaypicker                string `json:"brithdaypicker"`
 	DateIssuedPicker              string `json:"dateIssuedPicker"`
 	DateIssuedDriverLicencePicker string `json:"dateIssuedDriverLicencePicker"`
+	SallaryPerDay                 string `json:"sallaryPerDay"`
+	CommissionPerTransacrion      string `json:"commissionPerTransacrion"`
 	Status                        string `json:"status"`
+	Pawn                          string `json:"pawn"`
 	Token                         string `json:"token"`
 }
 
@@ -67,7 +70,7 @@ func (mc *MyClient) insertDriverData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("drivers")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err = podcastsCollection.InsertOne(ctx, bson.D{
+	res, err := podcastsCollection.InsertOne(ctx, bson.D{
 		{"lastname", data.Lastname},
 		{"firstname", data.Firstname},
 		{"fathername", data.Fathername},
@@ -104,7 +107,28 @@ func (mc *MyClient) insertDriverData(w http.ResponseWriter, r *http.Request) {
 		{"brithdaypicker", data.Brithdaypicker},
 		{"dateIssuedPicker", data.DateIssuedPicker},
 		{"dateIssuedDriverLicencePicker", data.DateIssuedDriverLicencePicker},
+		{"sallaryPerDay", data.SallaryPerDay},
+		{"commissionPerTransacrion", data.CommissionPerTransacrion},
 		{"status", data.Status},
+		{"pawn", data.Pawn},
+		{"dateInsert", time.Now()},
+		{"dateUpdate", nil},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	podcastsCollection = mc.db.Collection("allUsers")
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err = podcastsCollection.InsertOne(ctx, bson.D{
+		{"parentId", res.InsertedID},
+		{"lastname", data.Lastname},
+		{"type", "driver"},
+		{"firstname", data.Firstname},
+		{"fathername", data.Fathername},
+		{"email", data.Email},
+		{"token", data.Token},
 		{"dateInsert", time.Now()},
 		{"dateUpdate", nil},
 	})
@@ -133,9 +157,11 @@ func (mc *MyClient) updateDriverData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("drivers")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	resultUpdate, err := podcastsCollection.UpdateOne(
+	_, err = podcastsCollection.UpdateOne(
 		ctx,
-		bson.M{"_id": id},
+		bson.M{
+			"_id": id,
+		},
 		bson.M{
 			"$set": bson.M{
 				"lastname":                      data.Lastname,
@@ -157,6 +183,7 @@ func (mc *MyClient) updateDriverData(w http.ResponseWriter, r *http.Request) {
 				"isSelfCar":                     data.IsSelfCar,
 				"carBrandAndNumber":             data.CarBrandAndNumber,
 				"rating":                        data.Rating,
+				"pawn":                          data.Pawn,
 				"commentaries":                  data.Commentaries,
 				"informDriverBalanceChanges":    data.InformDriverBalanceChanges,
 				"informDriverBalanceLittle":     data.InformDriverBalanceLittle,
@@ -172,12 +199,37 @@ func (mc *MyClient) updateDriverData(w http.ResponseWriter, r *http.Request) {
 				"brithdaypicker":                data.Brithdaypicker,
 				"dateIssuedPicker":              data.DateIssuedPicker,
 				"dateIssuedDriverLicencePicker": data.DateIssuedDriverLicencePicker,
+				"sallaryPerDay":                 data.SallaryPerDay,
+				"commissionPerTransacrion":      data.CommissionPerTransacrion,
 				"status":                        data.Status,
 				"dateUpdate":                    time.Now(),
 			},
 		},
 	)
-	fmt.Println(resultUpdate.ModifiedCount) // output: 1
+
+	//	fmt.Println(resultUpdate.ModifiedCount) // output: 1
+
+	podcastsCollection = mc.db.Collection("allUsers")
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err = podcastsCollection.UpdateOne(
+		ctx,
+		bson.M{
+			"parentId": id,
+			"type":     "driver"},
+		bson.M{
+			"$set": bson.M{
+				"lastname":   data.Lastname,
+				"firstname":  data.Firstname,
+				"fathername": data.Fathername,
+				"email":      data.Email,
+				"dateUpdate": time.Now(),
+			},
+		},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
@@ -210,6 +262,7 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 		phoneJson, err := json.Marshal(result["phone"])
 		emailJson, err := json.Marshal(result["email"])
 		innJson, err := json.Marshal(result["inn"])
+		pawnJson, err := json.Marshal(result["pawn"])
 		classInsuranceJson, err := json.Marshal(result["classInsurance"])
 		numberDriverLicenceJson, err := json.Marshal(result["numberDriverLicence"])
 		dateIssuedDriverLicenceDateJson, err := json.Marshal(result["dateIssuedDriverLicenceDate"])
@@ -234,6 +287,8 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 		brithdaypickerJson, err := json.Marshal(result["brithdaypicker"])
 		dateIssuedPickerJson, err := json.Marshal(result["dateIssuedPicker"])
 		dateIssuedDriverLicencePickerJson, err := json.Marshal(result["dateIssuedDriverLicencePicker"])
+		sallaryPerDayJson, err := json.Marshal(result["sallaryPerDay"])
+		commissionPerTransacrionJson, err := json.Marshal(result["commissionPerTransacrion"])
 		statusJson, err := json.Marshal(result["status"])
 
 		idStr, _ := strconv.Unquote(string(idJson))
@@ -247,6 +302,7 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 		phoneStr, _ := strconv.Unquote(string(phoneJson))
 		emailStr, _ := strconv.Unquote(string(emailJson))
 		innStr, _ := strconv.Unquote(string(innJson))
+		pawnStr, _ := strconv.Unquote(string(pawnJson))
 		classInsuranceStr, _ := strconv.Unquote(string(classInsuranceJson))
 		numberDriverLicenceStr, _ := strconv.Unquote(string(numberDriverLicenceJson))
 		dateIssuedDriverLicenceDateStr, _ := strconv.Unquote(string(dateIssuedDriverLicenceDateJson))
@@ -271,6 +327,8 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 		brithdaypickerStr, _ := strconv.Unquote(string(brithdaypickerJson))
 		dateIssuedPickerStr, _ := strconv.Unquote(string(dateIssuedPickerJson))
 		dateIssuedDriverLicencePickerStr, _ := strconv.Unquote(string(dateIssuedDriverLicencePickerJson))
+		sallaryPerDayStr, _ := strconv.Unquote(string(sallaryPerDayJson))
+		commissionPerTransacrionStr, _ := strconv.Unquote(string(commissionPerTransacrionJson))
 		statusStr, _ := strconv.Unquote(string(statusJson))
 
 		parsedData = append(parsedData, DataDriver{
@@ -285,6 +343,7 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 			Phone:                         string(phoneStr),
 			Email:                         string(emailStr),
 			Inn:                           string(innStr),
+			Pawn:                          string(pawnStr),
 			ClassInsurance:                string(classInsuranceStr),
 			NumberDriverLicence:           string(numberDriverLicenceStr),
 			DateIssuedDriverLicenceDate:   string(dateIssuedDriverLicenceDateStr),
@@ -309,6 +368,8 @@ func (mc *MyClient) selectDriverData(w http.ResponseWriter, r *http.Request) {
 			Brithdaypicker:                string(brithdaypickerStr),
 			DateIssuedPicker:              string(dateIssuedPickerStr),
 			DateIssuedDriverLicencePicker: string(dateIssuedDriverLicencePickerStr),
+			SallaryPerDay:                 string(sallaryPerDayStr),
+			CommissionPerTransacrion:      string(commissionPerTransacrionStr),
 			Status:                        string(statusStr),
 		})
 
@@ -337,7 +398,6 @@ func (mc *MyClient) deleteDriverData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(data.Id)
 	podcastsCollection := mc.db.Collection("drivers")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

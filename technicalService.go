@@ -19,12 +19,11 @@ type DataTechnicalService struct {
 	Auto                          string      `json:"auto"`
 	TypeJob                       string      `json:"typeJob"`
 	AutoRun                       string      `json:"autoRun"`
-	ListJobs                      string      `json:"listJobs"`
 	Contragent                    string      `json:"contragent"`
 	StatestatePassengerSeat       string      `json:"statestatePassengerSeat"`
 	ResultDyagnostic              string      `json:"resultDyagnostic"`
 	CoastSparePart                string      `json:"coastSparePart"`
-	CoastJobs                     string      `json:"coastJobs"`
+	CoastJobs                     interface{} `json:"coastJobs"`
 	StatusRes                     string      `json:"statusRes"`
 	TyreBrand                     string      `json:"tyreBrand"`
 	BodyCabineDamage              string      `json:"bodyCabineDamage"`
@@ -46,12 +45,58 @@ type DataTechnicalService struct {
 	Token                         string      `json:"token"`
 	Parts                         interface{} `json:"parts"`
 	Free                          string      `json:"free"`
+	CoastJobsAll                  string      `json:"coastJobsAll"`
 	OtherParts                    interface{} `json:"otherPart"`
 }
 
+type DataTechnicalServicex struct {
+	Id                            string             `json:"_id"`
+	Auto                          string             `json:"auto"`
+	TypeJob                       string             `json:"typeJob"`
+	AutoRun                       string             `json:"autoRun"`
+	Contragent                    string             `json:"contragent"`
+	StatestatePassengerSeat       string             `json:"statestatePassengerSeat"`
+	ResultDyagnostic              string             `json:"resultDyagnostic"`
+	CoastSparePart                string             `json:"coastSparePart"`
+	CoastJobs                     []CoastJobsStruct  `json:"coastJobs"`
+	StatusRes                     string             `json:"statusRes"`
+	TyreBrand                     string             `json:"tyreBrand"`
+	BodyCabineDamage              string             `json:"bodyCabineDamage"`
+	AutoCleanliness               string             `json:"autoCleanliness"`
+	OverallInteriorCleanliness    string             `json:"overallInteriorCleanliness"`
+	StateCeling                   string             `json:"stateCeling"`
+	StatePassengerSeat            string             `json:"statePassengerSeat"`
+	StateDriverSeat               string             `json:"stateDriverSeat"`
+	StateSeatbelt                 string             `json:"stateSeatbelt"`
+	StateSteeringWheelAndSwitches string             `json:"stateSteeringWheelAndSwitches"`
+	StatePanel                    string             `json:"statePanel"`
+	StateSwitchKPP                string             `json:"stateSwitchKPP"`
+	WindscreenCondition           string             `json:"windscreenCondition"`
+	StateLeftwindscreen           string             `json:"stateLeftwindscreen"`
+	TrunkCondition                string             `json:"trunkCondition"`
+	StateTyre                     string             `json:"stateTyre"`
+	ForeginLicenceRegistration    bool               `json:"foreginLicenceRegistration"`
+	DateData                      string             `json:"dateData"`
+	Token                         string             `json:"token"`
+	Parts                         []PartsStruct      `json:"parts"`
+	Free                          string             `json:"free"`
+	CoastJobsAll                  string             `json:"coastJobsAll"`
+	OtherParts                    []OtherPartsStruct `json:"otherPart"`
+}
+
+type CoastJobsStruct struct {
+	Title   string `json:"title"`
+	Price   string `json:"price"`
+	Percent string `json:"percent"`
+}
+
 type PartsStruct struct {
+	Id          string `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	Percent     string `json:"percent"`
+	SummEnd     string `json:"summEnd"`
+	Summ        string `json:"summ"`
 }
 
 type OtherPartsStruct struct {
@@ -59,6 +104,8 @@ type OtherPartsStruct struct {
 	Articale string `json:"articale"`
 	HowMuch  string `json:"howmuch"`
 	Price    string `json:"price"`
+	Percent  string `json:"percent"`
+	SummEnd  string `json:"summEnd"`
 }
 
 func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Request) {
@@ -73,12 +120,15 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 
 	strPartsStruct, _ := data.Parts.(string)
 	strOtherPartsStruct, _ := data.OtherParts.(string)
+	strCoastJobsStruct, _ := data.CoastJobs.(string)
 
 	var i []PartsStruct
 	var y []OtherPartsStruct
+	var z []CoastJobsStruct
 
 	var bMPartsStruct []bson.M
 	var bMstrOtherPartsStruct []bson.M
+	var bMstrCoastJobsStruct []bson.M
 
 	if err := json.Unmarshal([]byte(strPartsStruct), &i); err != nil {
 		fmt.Println("ugh: ", err)
@@ -87,10 +137,19 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 	if err := json.Unmarshal([]byte(strOtherPartsStruct), &y); err != nil {
 		fmt.Println("ugh: ", err)
 	}
+
+	if err := json.Unmarshal([]byte(strCoastJobsStruct), &z); err != nil {
+		fmt.Println("ugh: ", err)
+	}
+
 	for _, u := range i {
 		bMPartsStruct = append(bMPartsStruct, bson.M{
+			"id":          u.Id,
 			"title":       u.Title,
 			"description": u.Description,
+			"percent":     u.Percent,
+			"summEnd":     u.SummEnd,
+			"summ":        u.Summ,
 		})
 	}
 	for _, u := range y {
@@ -99,23 +158,31 @@ func (mc *MyClient) insertTechnicalServiceData(w http.ResponseWriter, r *http.Re
 			"articale": u.Articale,
 			"howMuch":  u.HowMuch,
 			"price":    u.Price,
+			"percent":  u.Percent,
+			"summEnd":  u.SummEnd,
+		})
+	}
+	for _, u := range z {
+		bMstrCoastJobsStruct = append(bMstrCoastJobsStruct, bson.M{
+			"title":   u.Title,
+			"price":   u.Price,
+			"percent": u.Percent,
 		})
 	}
 
 	podcastsCollection := mc.db.Collection("technicalService")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	fmt.Println(data.Auto)
 	_, err = podcastsCollection.InsertOne(ctx, bson.M{
 		"auto":                          data.Auto,
 		"typeJob":                       data.TypeJob,
 		"autoRun":                       data.AutoRun,
-		"listJobs":                      data.ListJobs,
+		"coastJobsAll":                  data.CoastJobsAll,
 		"contragent":                    data.Contragent,
 		"statestatePassengerSeat":       data.StatestatePassengerSeat,
 		"resultDyagnostic":              data.ResultDyagnostic,
 		"coastSparePart":                data.CoastSparePart,
-		"coastJobs":                     data.CoastJobs,
+		"coastJobs":                     bMstrCoastJobsStruct,
 		"statusRes":                     data.StatusRes,
 		"tyreBrand":                     data.TyreBrand,
 		"bodyCabineDamage":              data.BodyCabineDamage,
@@ -155,9 +222,57 @@ func (mc *MyClient) updateTechnicalServiceData(w http.ResponseWriter, r *http.Re
 		fmt.Println(err)
 		return
 	}
-	if err != nil {
-		fmt.Println(err)
-		return
+
+	strPartsStruct, _ := data.Parts.(string)
+	strOtherPartsStruct, _ := data.OtherParts.(string)
+	strCoastJobsStruct, _ := data.CoastJobs.(string)
+
+	var i []PartsStruct
+	var y []OtherPartsStruct
+	var z []CoastJobsStruct
+
+	var bMPartsStruct []bson.M
+	var bMstrOtherPartsStruct []bson.M
+	var bMstrCoastJobsStruct []bson.M
+
+	if err := json.Unmarshal([]byte(strPartsStruct), &i); err != nil {
+		fmt.Println("ugh: ", err)
+	}
+
+	if err := json.Unmarshal([]byte(strOtherPartsStruct), &y); err != nil {
+		fmt.Println("ugh: ", err)
+	}
+
+	if err := json.Unmarshal([]byte(strCoastJobsStruct), &z); err != nil {
+		fmt.Println("ugh: ", err)
+	}
+
+	for _, u := range i {
+		bMPartsStruct = append(bMPartsStruct, bson.M{
+			"id":          u.Id,
+			"title":       u.Title,
+			"description": u.Description,
+			"percent":     u.Percent,
+			"summEnd":     u.SummEnd,
+			"summ":        u.Summ,
+		})
+	}
+	for _, u := range y {
+		bMstrOtherPartsStruct = append(bMstrOtherPartsStruct, bson.M{
+			"name":     u.Name,
+			"articale": u.Articale,
+			"howMuch":  u.HowMuch,
+			"price":    u.Price,
+			"percent":  u.Percent,
+			"summEnd":  u.SummEnd,
+		})
+	}
+	for _, u := range z {
+		bMstrCoastJobsStruct = append(bMstrCoastJobsStruct, bson.M{
+			"title":   u.Title,
+			"price":   u.Price,
+			"percent": u.Percent,
+		})
 	}
 	id, err := primitive.ObjectIDFromHex(strings.Trim(data.Id, "\""))
 	if err != nil {
@@ -174,12 +289,12 @@ func (mc *MyClient) updateTechnicalServiceData(w http.ResponseWriter, r *http.Re
 				"auto":                          data.Auto,
 				"typeJob":                       data.TypeJob,
 				"autoRun":                       data.AutoRun,
-				"listJobs":                      data.ListJobs,
+				"coastJobsAll":                  data.CoastJobsAll,
 				"contragent":                    data.Contragent,
 				"statestatePassengerSeat":       data.StatestatePassengerSeat,
 				"resultDyagnostic":              data.ResultDyagnostic,
 				"coastSparePart":                data.CoastSparePart,
-				"coastJobs":                     data.CoastJobs,
+				"coastJobs":                     bMstrCoastJobsStruct,
 				"statusRes":                     data.StatusRes,
 				"tyreBrand":                     data.TyreBrand,
 				"bodyCabineDamage":              data.BodyCabineDamage,
@@ -198,6 +313,10 @@ func (mc *MyClient) updateTechnicalServiceData(w http.ResponseWriter, r *http.Re
 				"stateTyre":                     data.StateTyre,
 				"foreginLicenceRegistration":    data.ForeginLicenceRegistration,
 				"dateData":                      data.DateData,
+				"parts":                         bMPartsStruct,
+				"otherParts":                    bMstrOtherPartsStruct,
+				"token":                         data.Token,
+				"free":                          data.Free,
 				"dateUpdate":                    time.Now(),
 			},
 		},
@@ -229,7 +348,7 @@ func (mc *MyClient) selectTechnicalServiceData(w http.ResponseWriter, r *http.Re
 		autoJson, err := json.Marshal(result["auto"])
 		typeJobJson, err := json.Marshal(result["typeJob"])
 		autoRunJson, err := json.Marshal(result["autoRun"])
-		listJobsJson, err := json.Marshal(result["listJobs"])
+		coastJobsAllJson, err := json.Marshal(result["coastJobsAll"])
 		contragentJson, err := json.Marshal(result["contragent"])
 		statestatePassengerSeatJson, err := json.Marshal(result["statestatePassengerSeat"])
 		resultDyagnosticJson, err := json.Marshal(result["resultDyagnostic"])
@@ -258,7 +377,7 @@ func (mc *MyClient) selectTechnicalServiceData(w http.ResponseWriter, r *http.Re
 		autoStr, _ := strconv.Unquote(string(autoJson))
 		typeJobStr, _ := strconv.Unquote(string(typeJobJson))
 		autoRunStr, _ := strconv.Unquote(string(autoRunJson))
-		listJobsStr, _ := strconv.Unquote(string(listJobsJson))
+		coastJobsAllStr, _ := strconv.Unquote(string(coastJobsAllJson))
 		contragentStr, _ := strconv.Unquote(string(contragentJson))
 		statestatePassengerSeatStr, _ := strconv.Unquote(string(statestatePassengerSeatJson))
 		resultDyagnosticStr, _ := strconv.Unquote(string(resultDyagnosticJson))
@@ -288,7 +407,7 @@ func (mc *MyClient) selectTechnicalServiceData(w http.ResponseWriter, r *http.Re
 			Auto:                          string(autoStr),
 			TypeJob:                       string(typeJobStr),
 			AutoRun:                       string(autoRunStr),
-			ListJobs:                      string(listJobsStr),
+			CoastJobsAll:                  string(coastJobsAllStr),
 			Contragent:                    string(contragentStr),
 			StatestatePassengerSeat:       string(statestatePassengerSeatStr),
 			ResultDyagnostic:              string(resultDyagnosticStr),
@@ -346,7 +465,7 @@ func (mc *MyClient) deleteTechnicalServiceData(w http.ResponseWriter, r *http.Re
 
 func (mc *MyClient) selectTechnicalServiceDataOne(w http.ResponseWriter, r *http.Request) {
 	setupResponse(w, r)
-	var data DataTechnicalService
+	var data DataTechnicalServicex
 	r.ParseForm()
 	idGet := string(r.Form.Get("id"))
 	id, err := primitive.ObjectIDFromHex(strings.Trim(idGet, "\""))

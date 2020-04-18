@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -94,8 +93,6 @@ func (mc *MyClient) dataAutoFind(collection, key, value string) string {
 	}).Decode(&data)
 
 	nameJson := data.Model + " " + " " + data.NumberSymbol + " " + data.Owner
-	fmt.Println(data)
-	fmt.Println(nameJson)
 	return nameJson
 }
 
@@ -115,7 +112,7 @@ func NewMyClient(url, db string) (mc *MyClient, err error) {
 }
 
 func main() {
-	mc, err := NewMyClient("mongodb://localhost:27017", "crmTaxi")
+	mc, err := NewMyClient("mongodb://localhost/:27017", "crmTaxi")
 	if err != nil {
 		panic(err)
 	}
@@ -233,5 +230,8 @@ func main() {
 	http.HandleFunc("/checkAuthData", mc.checkAuthData)
 	http.HandleFunc("/resetAuthData", mc.resetAuthData)
 	http.HandleFunc("/deleteAuthData", mc.deleteAuthData)
+
+	http.HandleFunc("/selectAllUsersData", mc.selectAllUsersData)
+
 	panic(http.ListenAndServe(":8081", nil))
 }

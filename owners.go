@@ -18,6 +18,7 @@ type DataOwner struct {
 	Id                 string `json:"_id"`
 	Name               string `json:"name"`
 	Phone              string `json:"phone"`
+	Email              string `json:"email"`
 	ContactPerson      string `json:"contactPerson"`
 	Proceedings        string `json:"proceedings"`
 	GroundsForContract string `json:"groundsForContract"`
@@ -43,8 +44,9 @@ func (mc *MyClient) insertOwnerData(w http.ResponseWriter, r *http.Request) {
 	podcastsCollection := mc.db.Collection("owners")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err = podcastsCollection.InsertOne(ctx, bson.D{
+	res, err := podcastsCollection.InsertOne(ctx, bson.D{
 		{"name", data.Name},
+		{"phone", data.Phone},
 		{"phone", data.Phone},
 		{"contactPerson", data.ContactPerson},
 		{"proceedings", data.Proceedings},
@@ -57,6 +59,22 @@ func (mc *MyClient) insertOwnerData(w http.ResponseWriter, r *http.Request) {
 		{"free", 1},
 		{"perMounth", data.PerMounth},
 		{"conditionJobs", data.ConditionJobs},
+		{"dateInsert", time.Now()},
+		{"dateUpdate", nil},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	podcastsCollection = mc.db.Collection("allUsers")
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err = podcastsCollection.InsertOne(ctx, bson.D{
+		{"parentId", res.InsertedID},
+		{"lastname", data.Name},
+		{"type", "owner"},
+		{"token", data.Token},
+		{"email", data.Email},
 		{"dateInsert", time.Now()},
 		{"dateUpdate", nil},
 	})
@@ -76,15 +94,19 @@ func (mc *MyClient) updateOwnerData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id, err := primitive.ObjectIDFromHex(strings.Trim(data.Id, "\""))
+	token := string(r.Form.Get("token"))
 	if err != nil {
 		fmt.Println(err)
 	}
 	podcastsCollection := mc.db.Collection("owners")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	resultUpdate, err := podcastsCollection.UpdateOne(
+	_, err = podcastsCollection.UpdateOne(
 		ctx,
-		bson.M{"_id": id},
+		bson.M{
+			"token": token,
+			"_id":   id,
+		},
 		bson.M{
 			"$set": bson.M{
 				"name":               data.Name,
@@ -102,7 +124,28 @@ func (mc *MyClient) updateOwnerData(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	)
-	fmt.Println(resultUpdate.ModifiedCount) // output: 1
+	//fmt.Println(resultUpdate.ModifiedCount) // output: 1
+
+	podcastsCollection = mc.db.Collection("allUsers")
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err = podcastsCollection.UpdateOne(
+		ctx,
+		bson.M{
+			"token":    token,
+			"parentId": id,
+			"type":     "owner"},
+		bson.M{
+			"$set": bson.M{
+				"lastname":   data.Name,
+				"email":      data.Email,
+				"dateUpdate": time.Now(),
+			},
+		},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (mc *MyClient) selectOwnerData(w http.ResponseWriter, r *http.Request) {

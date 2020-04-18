@@ -63,7 +63,7 @@ func (mc *MyClient) updateUserCommentData(w http.ResponseWriter, r *http.Request
 	podcastsCollection := mc.db.Collection("userComment")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	resultUpdate, err := podcastsCollection.UpdateOne(
+	_, err = podcastsCollection.UpdateOne(
 		ctx,
 		bson.M{"_id": id},
 		bson.M{
@@ -75,7 +75,7 @@ func (mc *MyClient) updateUserCommentData(w http.ResponseWriter, r *http.Request
 			},
 		},
 	)
-	fmt.Println(resultUpdate.ModifiedCount) // output: 1
+	//fmt.Println(resultUpdate.ModifiedCount) // output: 1
 }
 func (mc *MyClient) deleteUserCommentData(w http.ResponseWriter, r *http.Request) {
 	setupResponse(w, r)

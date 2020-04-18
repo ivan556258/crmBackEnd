@@ -55,7 +55,9 @@ type Automobile struct {
 	PeriodInsurancePolicyValidityDate string `json:"periodInsurancePolicyValidityDate"`
 	TermValidityTODate                string `json:"termValidityTODate"`
 	DateIssuedSTDate                  string `json:"dateIssuedSTDate"`
-	Free                              string `json:"free"`
+	CommissionPerDay                  string `json:"commissionPerDay"`
+	CommissionPerTransacrion          string `json:"commissionPerTransacrion"`
+	Free                              int    `json:"free"`
 	Token                             string `json:"token"`
 }
 
@@ -112,6 +114,8 @@ func (mc *MyClient) insertAutomobileData(w http.ResponseWriter, r *http.Request)
 		{"periodInsurancePolicyValidityDate", data.PeriodInsurancePolicyValidityDate},
 		{"termValidityTODate", data.TermValidityTODate},
 		{"DateIssuedSTDate", data.DateIssuedSTDate},
+		{"commissionPerDay ", data.CommissionPerDay},
+		{"commissionPerTransacrion", data.CommissionPerTransacrion},
 		{"free", "1"},
 		{"dateInsert", time.Now()},
 		{"dateUpdate", nil},
@@ -184,6 +188,8 @@ func (mc *MyClient) updateAutomobileData(w http.ResponseWriter, r *http.Request)
 				"finishOperationDate":               data.FinishOperationDate,
 				"periodInsurancePolicyValidityDate": data.PeriodInsurancePolicyValidityDate,
 				"termValidityTODate":                data.TermValidityTODate,
+				"commissionPerDay":                  data.CommissionPerDay,
+				"commissionPerTransacrion":          data.CommissionPerTransacrion,
 				"DateIssuedSTDate":                  data.DateIssuedSTDate,
 				"dateUpdate":                        time.Now(),
 			},
@@ -250,6 +256,8 @@ func (mc *MyClient) selectAutomobileData(w http.ResponseWriter, r *http.Request)
 		finishOperationDateJson, err := json.Marshal(result["finishOperationDate"])
 		periodInsurancePolicyValidityDateJson, err := json.Marshal(result["periodInsurancePolicyValidityDate"])
 		termValidityTODateJson, err := json.Marshal(result["termValidityTODate"])
+		commissionPerDayJson, err := json.Marshal(result["commissionPerDay"])
+		commissionPerTransacrionJson, err := json.Marshal(result["commissionPerTransacrion"])
 		dateIssuedSTSDateJson, err := json.Marshal(result["dateIssuedSTSDate"])
 
 		idStr, _ := strconv.Unquote(string(idJson))
@@ -291,6 +299,8 @@ func (mc *MyClient) selectAutomobileData(w http.ResponseWriter, r *http.Request)
 		finishOperationDateStr, _ := strconv.Unquote(string(finishOperationDateJson))
 		periodInsurancePolicyValidityDateStr, _ := strconv.Unquote(string(periodInsurancePolicyValidityDateJson))
 		termValidityTODateStr, _ := strconv.Unquote(string(termValidityTODateJson))
+		commissionPerDayStr, _ := strconv.Unquote(string(commissionPerDayJson))
+		commissionPerTransacrionStr, _ := strconv.Unquote(string(commissionPerTransacrionJson))
 		dateIssuedSTSDateStr, _ := strconv.Unquote(string(dateIssuedSTSDateJson))
 
 		parsedData = append(parsedData, Automobile{
@@ -333,6 +343,8 @@ func (mc *MyClient) selectAutomobileData(w http.ResponseWriter, r *http.Request)
 			FinishOperationDate:               string(finishOperationDateStr),
 			PeriodInsurancePolicyValidityDate: string(periodInsurancePolicyValidityDateStr),
 			TermValidityTODate:                string(termValidityTODateStr),
+			CommissionPerDay:                  string(commissionPerDayStr),
+			CommissionPerTransacrion:          string(commissionPerTransacrionStr),
 			DateIssuedSTDate:                  string(dateIssuedSTSDateStr),
 		})
 
@@ -388,49 +400,6 @@ func (mc *MyClient) selectAutomobileDataOne(w http.ResponseWriter, r *http.Reque
 	podcastsCollection.FindOne(
 		ctx,
 		bson.M{"_id": id}).Decode(&data)
-
-	data = Automobile{
-		Id:                                string(data.Id),
-		StatusRes:                         string(data.StatusRes),
-		Picker:                            string(data.Picker),
-		Brand:                             string(data.Brand),
-		Model:                             string(data.Model),
-		Owner:                             string(data.Owner),
-		Category:                          string(data.Category),
-		AutoRun:                           string(data.AutoRun),
-		NameInsuranceCompany:              string(data.NameInsuranceCompany),
-		NumberInsuranceCompany:            string(data.NumberInsuranceCompany),
-		OilChangeMileageKm:                string(data.OilChangeMileageKm),
-		TyreType:                          string(data.TyreType),
-		BrandTyre:                         string(data.BrandTyre),
-		BeaconNumber:                      string(data.BeaconNumber),
-		IMEIbeacon:                        string(data.IMEIbeacon),
-		AdditionalEquipment:               string(data.AdditionalEquipment),
-		SeriaAndNumberOfPTS:               string(data.SeriaAndNumberOfPTS),
-		VIN:                               string(data.VIN),
-		NameTypeTS:                        string(data.NameTypeTS),
-		CategoryTS:                        string(data.CategoryTS),
-		ChassisFrame:                      string(data.ChassisFrame),
-		ModelNumberMotor:                  string(data.ModelNumberMotor),
-		YearIssued:                        string(data.YearIssued),
-		ColorCabina:                       string(data.ColorCabina),
-		EnginePower:                       string(data.EnginePower),
-		EngineWorkingVolume:               string(data.EngineWorkingVolume),
-		MotorType:                         string(data.MotorType),
-		EcologyClaas:                      string(data.EcologyClaas),
-		AllwedMaxWeight:                   string(data.AllwedMaxWeight),
-		WeightWithoutLoads:                string(data.WeightWithoutLoads),
-		ForeginLicenceRegistration:        bool(data.ForeginLicenceRegistration),
-		NumberSymbol:                      string(data.NumberSymbol),
-		WhoIssuedPTS:                      string(data.WhoIssuedPTS),
-		SeriaAndNumberSTS:                 string(data.SeriaAndNumberSTS),
-		StartOperationMenu:                string(data.StartOperationMenu),
-		StartOperationDate:                string(data.StartOperationDate),
-		FinishOperationDate:               string(data.FinishOperationDate),
-		PeriodInsurancePolicyValidityDate: string(data.PeriodInsurancePolicyValidityDate),
-		TermValidityTODate:                string(data.TermValidityTODate),
-		DateIssuedSTDate:                  string(data.DateIssuedSTDate),
-	}
 
 	w.Header().Set("Content-Type", "application/json")
 	bytes, err := json.Marshal(data)

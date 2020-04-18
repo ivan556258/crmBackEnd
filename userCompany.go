@@ -7,11 +7,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserCompany struct {
@@ -104,20 +102,13 @@ func (mc *MyClient) saveUserCompanyData(w http.ResponseWriter, r *http.Request) 
 		fmt.Println(err)
 		return
 	}
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	id, err := primitive.ObjectIDFromHex(strings.Trim(data.Id, "\""))
-	if err != nil {
-		fmt.Println(err)
-	}
+
 	podcastsCollection := mc.db.Collection("userCompany")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	resultUpdate, err := podcastsCollection.UpdateOne(
 		ctx,
-		bson.M{"_id": id},
+		bson.M{"token": data.Token},
 		bson.M{
 			"$set": bson.M{
 				"name":                 data.Name,
